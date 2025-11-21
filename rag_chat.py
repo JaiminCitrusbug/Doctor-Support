@@ -77,6 +77,9 @@ def create_system_prompt(context_text, is_first_message=False):
             "- Provide ONLY the essential information needed to answer the question.\n"
             "- Do NOT add unnecessary explanations, additional context, or verbose elaborations.\n"
             "- Do NOT list multiple medication classes or provide extensive background unless specifically asked.\n"
+            "- Do NOT dump or list all the raw data from the context. Provide a concise, well-structured answer.\n"
+            "- When providing information, summarize key details (product name, composition, therapeutic class, dosage form, strength) in a readable format.\n"
+            "- If the user asks for 'more data' or 'more information', provide additional relevant details that weren't mentioned before, but still keep it concise.\n"
             "- Give confident, direct answers based on the context provided.\n"
             "- Example: For 'What should be given in case of cardiovascular?', answer with the specific medication from context (e.g., 'ATORITIC (Atorvastatin) is commonly used for cardiovascular conditions to manage cholesterol levels and reduce the risk of heart disease.') - NOT a long list of medication classes.\n\n"
 
@@ -150,8 +153,13 @@ def create_system_prompt(context_text, is_first_message=False):
             "Be concise, factual, and medically safe in all responses.\n\n"
 
             f"Context from knowledge base:\n{context_text}\n\n"
+            "CRITICAL: Data Presentation Rules:\n"
+            "- Do NOT show the raw context data as-is. Always provide a well-formatted, concise summary.\n"
+            "- When the user asks for 'more data' or 'more information', provide additional relevant details from the context that expand on what was previously discussed.\n"
+            "- Structure your response clearly with key information: product name, active ingredient, therapeutic class, strength, dosage form, and key indications.\n"
+            "- Do NOT list all available data fields verbatim - synthesize and present only relevant information.\n\n"
             "Remember: Be PROACTIVE in suggesting corrections. Even if the match isn't perfect, if it's reasonable, suggest it! "
-            "And always provide CONCISE, DIRECT answers without unnecessary elaboration."
+            "And always provide CONCISE, DIRECT answers without unnecessary elaboration or data dumps."
         ),
     }
 
@@ -171,16 +179,22 @@ Your task is to analyze the conversation and determine the BEST search query to 
 
 CRITICAL RULES:
 1. If the user is confirming a correction (e.g., responding "yes" to "Did you mean CIPROTAB?"), extract the CORRECTED TERM (e.g., "CIPROTAB") from the conversation history.
-2. If the user is asking about a medical condition or therapeutic class:
+2. If the user is asking for MORE INFORMATION about something previously discussed (e.g., "more data", "tell me more", "more details", "more information", "what else", "anything else"):
+   - Look at the conversation history to identify what was discussed in previous messages
+   - Extract the product name, drug name, or topic that was mentioned earlier
+   - Use that extracted term as the search query
+   - Example: If user previously asked about "paracetamol" and now says "more data", return "paracetamol"
+   - Example: If user previously asked about "CIPROTAB" and now says "tell me more", return "CIPROTAB"
+3. If the user is asking about a medical condition or therapeutic class:
    - Map conditions to therapeutic classes: "cardiovascular" → "CARDIAC", "heart" → "CARDIAC", "diabetes" → "DIABETES", "antibiotic" → "ANTIBIOTICS"
    - Use the therapeutic class term for retrieval
-3. If the user is asking a new question, analyze it for potential misspellings and try to normalize it:
+4. If the user is asking a new question, analyze it for potential misspellings and try to normalize it:
    - If you recognize a misspelling (e.g., "antrovast" → likely "atorvastatin"), use the corrected version
    - If you recognize a partial match (e.g., "antrovast" contains "atorvast"), expand to full term
    - Consider phonetic similarities and common drug/product name patterns
-4. If the user is referring to something mentioned earlier (using pronouns like "it", "that", "this"), extract the actual entity name from the conversation history.
-5. Always return ONLY the search query term(s) - no explanations, no questions, just the query string.
-6. Focus on extracting the specific product name, drug name, medical condition, or therapeutic class that should be searched.
+5. If the user is referring to something mentioned earlier (using pronouns like "it", "that", "this"), extract the actual entity name from the conversation history.
+6. Always return ONLY the search query term(s) - no explanations, no questions, just the query string.
+7. Focus on extracting the specific product name, drug name, medical condition, or therapeutic class that should be searched.
 
 Examples:
 - User: "I need details on Ciprteb" → Return: "CIPROTAB" (corrected spelling)
@@ -190,9 +204,12 @@ Examples:
 - User: "cardiovascular" or "cardiovascular condition" → Return: "CARDIAC" or "cardiovascular CARDIAC"
 - User: "What about it?" (after discussing CIPROTAB) → Return: "CIPROTAB"
 - User: "I need details on Ciprotab" → Return: "CIPROTAB"
+- User: "more data" (after discussing paracetamol) → Return: "paracetamol"
+- User: "tell me more" (after discussing ATORITIC) → Return: "ATORITIC"
 
 IMPORTANT: Be proactive in correcting obvious misspellings. If you recognize a drug/product name even with typos, use the corrected version.
 IMPORTANT: Map medical conditions to their therapeutic classes for better retrieval.
+IMPORTANT: For follow-up queries like "more data", ALWAYS extract the topic from conversation history - never return the follow-up phrase itself.
 
 Return ONLY the search query, nothing else."""
     }
@@ -247,7 +264,7 @@ def generate_answer(user_query, history):
             # Let LLM decide everything - it knows the greeting message format from system prompt
             chat_history = [{"role": m["role"], "content": m["content"]} for m in history]
             system_prompt = create_system_prompt(context_text, is_first_message=True)
-            messages = [system_prompt] + chat_history + [{"role": "user", "content": user_query}]
+            messages = [system_prompt] + chat_history
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -266,17 +283,25 @@ def generate_answer(user_query, history):
     # Use LLM to dynamically determine the best query for retrieval
     retrieval_query = determine_retrieval_query(user_query, history)
     
-    # Retrieve more chunks to have better candidates for fuzzy matching
-    # This helps when user misspells - we get more potential matches to analyze
-    retrieved_chunks = retrieve_similar_chunks(retrieval_query, top_k=5)
+    # Check if user is asking for more information (increase top_k for more comprehensive retrieval)
+    user_query_lower = user_query.lower().strip()
+    is_more_data_request = any(phrase in user_query_lower for phrase in [
+        "more data", "more information", "more details", "tell me more", 
+        "what else", "anything else", "additional", "more about"
+    ])
+    
+    # Retrieve chunks - use more chunks if user asks for "more data"
+    top_k = 10 if is_more_data_request else 5
+    retrieved_chunks = retrieve_similar_chunks(retrieval_query, top_k=top_k)
     context_text = "\n\n".join([chunk["text"] for chunk in retrieved_chunks])
 
     # Always let LLM process the query - it will decide if it can answer
     # Convert Streamlit history to OpenAI chat format
+    # Note: history already includes the current user message, so we don't need to add it again
     chat_history = [{"role": m["role"], "content": m["content"]} for m in history]
     system_prompt = create_system_prompt(context_text)
 
-    messages = [system_prompt] + chat_history + [{"role": "user", "content": user_query}]
+    messages = [system_prompt] + chat_history
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
