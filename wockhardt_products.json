@@ -1,0 +1,67 @@
+[
+  {
+    "id": "ciprotab_500mg_1",
+    "product_name": "CIPROTAB 500MG 10T",
+    "brand_name": null,
+    "strength": "500 mg",
+    "dosage_form": "tablet",
+    "pack_size": "10 tablets",
+    "composition": "Each Tablet Contains – Ciprofloxacin HCL IP eq to Ciprofloxacin 500 mg",
+    "therapeutic_class": "ANTIBIOTICS",
+    "indication_summary": null,
+    "otc_rx_flag": null,
+    "regulatory_numbers": null,
+    "source_url": "https://www.wockhardt.com/about-us/products/quality-generics/",
+    "extracted_text": "CIPROTAB 500MG 10T Each Tablet Contains – Ciprofloxacin HCL IP eq to Ciprofloxacin 500 mg ANTIBIOTICS",
+    "crawl_timestamp": "2025-11-12T12:07:00Z"
+  },
+  {
+    "id": "atoritic_10mg_1",
+    "product_name": "ATORITIC 10MG 10T ALU/ ALU",
+    "brand_name": null,
+    "strength": "10 mg",
+    "dosage_form": "tablet",
+    "pack_size": "10 tablets",
+    "composition": "Each film coated tablet contains: Atorvastatin Calcium IP eq. to Atorvastatin 10 mg",
+    "therapeutic_class": "CARDIAC",
+    "indication_summary": null,
+    "otc_rx_flag": null,
+    "regulatory_numbers": null,
+    "source_url": "https://www.wockhardt.com/about-us/products/quality-generics/",
+    "extracted_text": "ATORITIC 10MG 10T ALU/ ALU Each film coated tablet contains: Atorvastatin Calcium IP eq. to Atorvastatin 10 mg CARDIAC",
+    "crawl_timestamp": "2025-11-12T12:07:00Z"
+  },
+  {
+    "id": "cefprasz_1.50gm_1",
+    "product_name": "CEFPRAZ S 1.50GM (SCH H1)",
+    "brand_name": null,
+    "strength": "1.50 gm vial",
+    "dosage_form": "injection",
+    "pack_size": "1 vial",
+    "composition": "Each vial contains: Sulbactam Sodium USP eq to Sulbactam 0.5gm, Cefoperazone Sodium USP eq to Cefoperazone 1gm",
+    "therapeutic_class": "ANTIBIOTICS",
+    "indication_summary": null,
+    "otc_rx_flag": null,
+    "regulatory_numbers": null,
+    "source_url": "https://www.wockhardt.com/about-us/products/quality-generics/",
+    "extracted_text": "CEFPRAZ S 1.50GM (SCH H1) Each vial contains: Sulbactam Sodium USP eq to Sulbactam 0.5gm, Cefoperazone Sodium USP eq to Cefoperazone 1gm ANTIBIOTICS",
+    "crawl_timestamp": "2025-11-12T12:07:00Z"
+  },
+  {
+    "id": "glimaday_forte_1mg_1",
+    "product_name": "GLIMADAY FORTE-1",
+    "brand_name": null,
+    "strength": "1 mg",
+    "dosage_form": "tablet",
+    "pack_size": null,
+    "composition": "Each Uncoated Bilayered Tablet Contains Glimepiride I.P. ………….....1mg Metformin Hydrochloride I.P. ……..1000 mg (as Prolonged-release Form)",
+    "therapeutic_class": "DIABETES",
+    "indication_summary": null,
+    "otc_rx_flag": null,
+    "regulatory_numbers": null,
+    "source_url": "https://www.wockhardt.com/about-us/products/india-branded-business/",
+    "extracted_text": "GLIMADAY FORTE-1 Each Uncoated Bilayered Tablet Contains Glimepiride I.P. ………….....1mg Metformin Hydrochloride I.P. ……..1000 mg (as Prolonged-release Form) DIABETES",
+    "crawl_timestamp": "2025-11-12T12:07:00Z"
+  }
+]
+
